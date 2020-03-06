@@ -21437,6 +21437,8 @@ in
 
   scantailor-advanced = qt5.callPackage ../applications/graphics/scantailor/advanced.nix { };
 
+  scmpuff = callPackage ../applications/version-management/scmpuff/default.nix { };
+
   sc-im = callPackage ../applications/misc/sc-im { };
 
   scite = callPackage ../applications/editors/scite { };
