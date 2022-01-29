@@ -6,6 +6,7 @@
 , perlSupport      ? true
 , gdkPixbufSupport ? true
 , unicode3Support  ? true
+, emojiSupport     ? false
 }:
 
 let
@@ -44,18 +45,25 @@ stdenv.mkDerivation {
 
   outputs = [ "out" "terminfo" ];
 
-  patches = [
+  patches = (if emojiSupport then [
+    # wide glyph feature for emoji support, from AUR package by mrdotx
+    # https://aur.archlinux.org/packages/rxvt-unicode-truecolor-wide-glyphs/
+    # the required patches to libXft are applied by default, see
+    # ../../../servers/x11/xorg/overrides.nix
+    ./patches/enable-wide-glyphs.patch
+    ./patches/improve-font-rendering.patch
+  ] else [
     ./patches/9.06-font-width.patch
+  ]) ++ [
     ./patches/256-color-resources.patch
-  ] ++ optional stdenv.isDarwin ./patches/makefile-phony.patch;
-
+  ]++ optional stdenv.isDarwin ./patches/makefile-phony.patch;
 
   configureFlags = [
     "--with-terminfo=${placeholder "terminfo"}/share/terminfo"
     "--enable-256-color"
     (enableFeature perlSupport "perl")
     (enableFeature unicode3Support "unicode3")
-  ];
+  ] ++ optional emojiSupport "--enable-wide-glyphs";
 
   LDFLAGS = [ "-lfontconfig" "-lXrender" "-lpthread" ];
   CFLAGS = [ "-I${freetype.dev}/include/freetype2" ];
